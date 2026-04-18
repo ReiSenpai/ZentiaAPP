@@ -1,10 +1,24 @@
-// https://docs.expo.dev/guides/using-eslint/
-const { defineConfig } = require('eslint/config');
-const expoConfig = require('eslint-config-expo/flat');
+// eslint.config.js
+const { defineConfig } = require("eslint/config");
+const expoConfig = require("eslint-config-expo/flat");
 
 module.exports = defineConfig([
-  expoConfig,
+  ...expoConfig, // Importante usar el spread (...) si expoConfig es un array
   {
-    ignores: ['dist/*'],
+    settings: {
+      "import/resolver": {
+        typescript: {
+          alwaysTryTypes: true,
+          project: "./tsconfig.json",
+        },
+      },
+    },
+    rules: {
+      // Aquí puedes añadir reglas personalizadas para Zentia
+      "import/no-unresolved": "error",
+    },
+  },
+  {
+    ignores: ["dist/*", ".expo/*", "node_modules/*"],
   },
 ]);
