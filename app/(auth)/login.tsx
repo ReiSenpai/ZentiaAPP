@@ -29,7 +29,7 @@ export default function LoginScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Email o número de teléfono"
+          placeholder="Introduce su Email o número de teléfono"
           placeholderTextColor="#8c8c8c"
           value={email}
           onChangeText={setEmail}
