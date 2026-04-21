@@ -1,50 +1,157 @@
-# Welcome to your Expo app 👋
+# 🎬 Zentia - Avance de Proyecto Final 01
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Zentia** es una aplicación móvil de streaming inspirada en plataformas líderes como Netflix, desarrollada como parte del curso de Diseño y Desarrollo de Aplicaciones Móviles.
+Este primer avance demuestra la base técnica, la arquitectura de navegación y la interfaz de usuario inicial de la plataforma.
 
-## Get started
+---
 
-1. Install dependencies
+## 🛠️ Tecnologías y Configación del Entorno
 
-   ```bash
-   npm install
-   ```
+El proyecto ha sido configurado siguiendo buenas prácticas de desarrollo móvil moderno:
 
-2. Start the app
+- **Framework:** React Native v0.81.5 con Expo SDK v54
+- **Lenguaje:** TypeScript v5.9.2
+- **Enrutamiento:** Expo Router v6.0.23
+- **Navegación:**
+  - `@react-navigation/bottom-tabs`
+  - `@react-navigation/drawer`
 
-   ```bash
-   npx expo start
-   ```
+- **Iconografía:** `@expo/vector-icons` (Ionicons)
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📂 Estructura del Proyecto
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+app/
+├── (auth)/             # Flujo de autenticación (Login, Registro)
+├── (drawer)/           # Navegación lateral principal
+│   └── (tabs)/         # Navegación por pestañas (Catálogo, Home, Ajustes)
+├── components/         # Componentes reutilizables
+└── constants/          # Configuración global y estilos
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🎯 Criterios de Evaluación Cumplidos (Semana 5)
 
-To learn more about developing your project with Expo, look at the following resources:
+### 🧩 1. Construcción de Interfaz con Componentes Base
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Se han implementado interfaces claras utilizando componentes fundamentales de React Native:
 
-## Join the community
+- **View y Text:**
+  - Layouts oscuros
+  - Tipografía blanca para alto contraste
 
-Join our community of developers creating universal apps.
+- **Image:**
+  - Renderizado de posters mediante URLs externas
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- **FlatList:**
+  - Grid optimizado de **3 columnas**
+  - Renderizado eficiente
+
+---
+
+### 📱 2. Diseño Responsivo y Flexbox
+
+La aplicación se adapta a distintos tamaños de pantalla:
+
+- Uso de **Flexbox**:
+  - `flexDirection`
+  - `justifyContent`
+  - `alignItems`
+
+- Proporcionalidad visual:
+  - `aspectRatio: 2/3`
+
+- Mejora UX:
+  - `KeyboardAvoidingView`
+
+---
+
+### ⚙️ 3. Interactividad y Manejo de Estado
+
+Se implementó lógica funcional para interacción del usuario:
+
+- **useState:**
+  - Manejo de credenciales
+
+- **Eventos:**
+  - `onChangeText`
+  - `onPress`
+
+- **Validaciones:**
+  - `secureTextEntry`
+  - `keyboardType="email-address"`
+
+---
+
+### 🧭 4. Navegación Estructurada
+
+Flujo de usuario bien definido:
+
+- **Redirección:**
+  - `router.replace`
+
+- **Arquitectura:**
+  - `(auth)` → rutas públicas
+  - `(drawer)` → rutas privadas
+
+---
+
+## 🚀 Instrucciones de Ejecución
+
+1. **Clonar repositorio:**
+
+```bash
+git clone <tu-repo>
+cd zentia
+```
+
+2. **Instalar dependencias:**
+
+```bash
+npm install
+```
+
+3. **Iniciar proyecto:**
+
+```bash
+npx expo start
+```
+
+4. **Ejecutar:**
+
+- Escanear QR con Expo Go
+- Usar emulador Android/iOS
+
+---
+
+## 📌 Estado del Proyecto
+
+- ✅ Estructura base implementada
+- ✅ Navegación funcional
+- ✅ Interfaz inicial completa
+- 🔄 Próximos pasos:
+  - Integración con API
+  - Reproducción de video
+  - Persistencia de usuarios
+
+---
+
+## 👨‍💻 Autor
+
+Proyecto desarrollado como parte del curso de Desarrollo de Aplicaciones Móviles.
+
+## Capturas:
+
+- **Pantalla de Login:**
+  ![Pantalla de Login](./assets/images/login.png)
+- **Pantalla de Register:**
+  ![Pantalla de Login](./assets/images/register.png)
+- **Pantalla de Inicio:**
+  ![Pantalla de Login](./assets/images/home.png)
+- **Pantalla de Catalogo:**
+  ![Pantalla de Login](./assets/images/catalog.png)
+- **Pantalla de Configuracion:**
+  ![Pantalla de Login](./assets/images/setting.png)
