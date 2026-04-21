@@ -102,7 +102,7 @@ export default function homeScreen() {
         </ImageBackground>
         {/*Parte 2 -> Carrusel de categorias */}
         <View style={styles.content}>
-          <Text style={styles.sectionTitle}>Tendencias de Zentia</Text>
+          <Text style={styles.sectionTitle}>Peliculas en tendencia</Text>
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}

@@ -5,7 +5,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // Ocultamos el header nativo porque ya hicimos uno transparente
+        headerShown: false, // Con esto Ocultaremos el header nativo porque ya hicimos uno transparente
         tabBarShowLabel: false, // ¡Aquí hacemos que SOLO se vea el icono!
         tabBarActiveTintColor: "#E50914", // Rojo Zentia cuando está seleccionado
         tabBarInactiveTintColor: "#8c8c8c", // Gris cuando no está seleccionado
