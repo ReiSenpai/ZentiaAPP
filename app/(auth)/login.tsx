@@ -1,6 +1,7 @@
-import { Href, router } from "expo-router"; // <-- CORREGIDO AQUÍ
+import { Href, router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -14,9 +15,55 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  // ESTADOS NUEVOS
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const isValidEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
   const handleLogin = () => {
-    // Si ya tienes el index.tsx en (drawer)/(tabs), esto funcionará:
-    router.replace("/");
+    setEmailError("");
+    setPasswordError("");
+    let isValid = true;
+
+    if (email.trim() === "") {
+      setEmailError("El correo es obligatorio.");
+      isValid = false;
+    } else if (!isValidEmail(email)) {
+      setEmailError("Por favor, ingresa un correo válido.");
+      isValid = false;
+    }
+
+    if (password.trim() === "") {
+      setPasswordError("La contraseña es obligatoria.");
+      isValid = false;
+    } else if (password.length < 6) {
+      //->Pedir que ponga 6 caracteres.
+      setPasswordError("La contraseña debe tener al menos 6 caracteres.");
+      isValid = false;
+    }
+
+    // SI LA VALIDACIÓN ES CORRECTA, INICIA LA ANIMACIÓN
+    if (isValid) {
+      setIsLoading(true); // 1. Mostramos el círculo de carga
+
+      // Simulamos que estamos comprobando en una base de datos
+      setTimeout(() => {
+        setIsLoading(false); // Apagamos el círculo
+        setIsSuccess(true); // Mostramos el mensaje de éxito verde
+
+        // Espera 800 milisegundos para motrar al usuario "Bienvenido" e ingerse al inicio
+        setTimeout(() => {
+          router.replace("/");
+        }, 800);
+      }, 1500);
+    }
   };
 
   return (
@@ -28,26 +75,52 @@ export default function LoginScreen() {
         <Text style={styles.logo}>ZENTIA</Text>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, emailError ? styles.inputError : null]}
           placeholder="Introduce su Email o número de teléfono"
           placeholderTextColor="#8c8c8c"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (emailError) setEmailError("");
+          }}
           keyboardType="email-address"
           autoCapitalize="none"
+          editable={!isLoading && !isSuccess} // Bloquea el input si está cargando
         />
+        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, passwordError ? styles.inputError : null]}
           placeholder="Contraseña"
           placeholderTextColor="#8c8c8c"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (passwordError) setPasswordError("");
+          }}
           secureTextEntry
+          editable={!isLoading && !isSuccess} // Bloquea el input si está cargando
         />
+        {passwordError ? (
+          <Text style={styles.errorText}>{passwordError}</Text>
+        ) : null}
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Iniciar Sesión</Text>
+        {/* BOTÓN CON ANIMACIÓN DINÁMICA */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            isSuccess ? styles.buttonSuccess : null, // Cambia a verde si es éxito
+          ]}
+          onPress={handleLogin}
+          disabled={isLoading || isSuccess} // Desactiva el botón mientras carga para que no hagan doble clic
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#FFFFFF" /> // El circulito de carga
+          ) : isSuccess ? (
+            <Text style={styles.buttonText}>✅ ¡Bienvenido!</Text> // Texto de éxito
+          ) : (
+            <Text style={styles.buttonText}>Iniciar Sesión</Text> // Texto normal
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.helpButton}>
@@ -65,19 +138,9 @@ export default function LoginScreen() {
   );
 }
 
-// ... (tus estilos abajo están perfectos)
-
-// ESTO ES LO QUE TE FALTABA PARA QUITAR EL ROJO
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000000",
-  },
-  formContainer: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-  },
+  container: { flex: 1, backgroundColor: "#000000" },
+  formContainer: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
   logo: {
     color: "#c904fb",
     fontSize: 42,
@@ -92,8 +155,16 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 5,
     paddingHorizontal: 15,
-    marginBottom: 15,
+    marginBottom: 10,
     fontSize: 16,
+  },
+  inputError: { borderWidth: 1, borderColor: "#ff3333" },
+  errorText: {
+    color: "#ff3333",
+    fontSize: 13,
+    marginBottom: 15,
+    marginTop: -5,
+    paddingLeft: 5,
   },
   button: {
     backgroundColor: "#2501d6",
@@ -103,31 +174,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
+  // Agregado el color verde para cuando el login es correcto
+  buttonSuccess: {
+    backgroundColor: "#28a745",
   },
-  helpButton: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  helpText: {
-    color: "#b3b3b3",
-    fontSize: 14,
-  },
+  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
+  helpButton: { marginTop: 20, alignItems: "center" },
+  helpText: { color: "#b3b3b3", fontSize: 14 },
   signupContainer: {
     flexDirection: "row",
     marginTop: 30,
     justifyContent: "center",
   },
-  signupText: {
-    color: "#737373",
-    fontSize: 16,
-  },
-  signupLink: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  signupText: { color: "#737373", fontSize: 16 },
+  signupLink: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
 });

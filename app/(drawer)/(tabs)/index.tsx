@@ -56,7 +56,7 @@ export default function homeScreen() {
         translucent
       />
 
-      {/*BARRA SUPERIOR FLOTANTE (ESTILO NETFLIX)*/}
+      {/*BARRA SUPERIOR FLOTANTE*/}
       <SafeAreaView style={styles.topNav}>
         <Text style={styles.logoText}>ZENTIA</Text>
         <View style={styles.topNavIcons}>
