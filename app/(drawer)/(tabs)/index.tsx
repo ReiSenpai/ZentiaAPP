@@ -1,7 +1,8 @@
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image, ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -26,12 +27,31 @@ export default function HomeScreen() {
   const [trending, setTrending] = useState<any[]>([]);
   const [action, setAction] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileImage, setProfileImage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMovies();
   }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadProfile = async () => {
+        try {
+          const userDataStr = await AsyncStorage.getItem("@user_data");
 
+          if (userDataStr) {
+            const userData = JSON.parse(userDataStr);
+
+            setProfileImage(userData.profileImage || "");
+          }
+        } catch (e) {
+          console.log("Error loading profile image");
+        }
+      };
+
+      loadProfile();
+    }, []),
+  );
   const fetchMovies = async () => {
     try {
       setLoading(true);
@@ -117,7 +137,9 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={() => router.push("/settings")}>
             <Image
               source={{
-                uri: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png",
+                uri:
+                  profileImage ||
+                  "https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png",
               }}
               style={styles.profileAvatar}
             />
@@ -150,7 +172,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={styles.listButton}
-              onPress={() => router.push("/favorites")}
+              onPress={() => router.push("/favorites" as any)}
             >
               <AntDesign name="plus" size={20} color="white" />
               <Text style={styles.listText}>Mi lista</Text>
