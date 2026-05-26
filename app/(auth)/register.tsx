@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -15,7 +16,6 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ESTADOS NUEVOS: Para errores
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -25,20 +25,18 @@ export default function RegisterScreen() {
     return regex.test(email);
   };
 
-  const handleRegister = () => {
-    // Resetear errores antes de comprobar
+  // Convertimos a función asíncrona para usar AsyncStorage
+  const handleRegister = async () => {
     setNameError("");
     setEmailError("");
     setPasswordError("");
     let isValid = true;
 
-    // Validar Nombre
     if (name.trim() === "") {
       setNameError("El nombre es obligatorio.");
       isValid = false;
     }
 
-    // Validar Correo
     if (email.trim() === "") {
       setEmailError("El correo es obligatorio.");
       isValid = false;
@@ -47,7 +45,6 @@ export default function RegisterScreen() {
       isValid = false;
     }
 
-    // Validar Contraseña
     if (password.trim() === "") {
       setPasswordError("La contraseña es obligatoria.");
       isValid = false;
@@ -56,9 +53,16 @@ export default function RegisterScreen() {
       isValid = false;
     }
 
-    // Si todo está bien, registramos y entramos a la app
     if (isValid) {
-      router.replace("/");
+      try {
+        // Guardamos los datos del usuario como un objeto JSON
+        const userData = { name, email, password };
+        await AsyncStorage.setItem("@user_data", JSON.stringify(userData));
+
+        router.replace("/");
+      } catch (error) {
+        console.log("Error al guardar datos de registro");
+      }
     }
   };
 
@@ -71,7 +75,6 @@ export default function RegisterScreen() {
         <Text style={styles.logo}>ZENTIA</Text>
         <Text style={styles.subtitle}>Crea tu cuenta</Text>
 
-        {/* INPUT NOMBRE */}
         <TextInput
           style={[styles.input, nameError ? styles.inputError : null]}
           placeholder="Nombre completo"
@@ -84,7 +87,6 @@ export default function RegisterScreen() {
         />
         {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
 
-        {/* INPUT EMAIL */}
         <TextInput
           style={[styles.input, emailError ? styles.inputError : null]}
           placeholder="Email"
@@ -99,7 +101,6 @@ export default function RegisterScreen() {
         />
         {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-        {/* INPUT CONTRASEÑA */}
         <TextInput
           style={[styles.input, passwordError ? styles.inputError : null]}
           placeholder="Contraseña"
@@ -157,7 +158,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
   },
-  // ESTILOS DE ERROR IGUALES AL LOGIN
   inputError: { borderWidth: 1, borderColor: "#ff3333" },
   errorText: {
     color: "#ff3333",

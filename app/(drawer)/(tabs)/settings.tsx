@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -9,15 +11,13 @@ import {
   View,
 } from "react-native";
 
-// 1. Definimos la interfaz para TypeScript
 interface SettingItemProps {
-  icon: keyof typeof Ionicons.glyphMap; // Esto hace que el nombre del icono sea válido
+  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   color?: string;
   onPress?: () => void;
 }
 
-// 2. Componente de cada fila
 const SettingItem = ({
   icon,
   title,
@@ -34,6 +34,27 @@ const SettingItem = ({
 );
 
 export default function SettingsScreen() {
+  const router = useRouter();
+  const [userName, setUserName] = useState("Usuario");
+
+  // SE ACTUALIZA CADA VEZ QUE ENTRAS A AJUSTES
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadName = async () => {
+        try {
+          const userDataStr = await AsyncStorage.getItem("@user_data");
+          if (userDataStr) {
+            const userData = JSON.parse(userDataStr);
+            setUserName(userData.name || "Usuario");
+          }
+        } catch (e) {
+          console.log("Error loading name");
+        }
+      };
+      loadName();
+    }, []),
+  );
+
   const handleLogout = () => {
     Alert.alert(
       "Cerrar sesión",
@@ -43,7 +64,10 @@ export default function SettingsScreen() {
         {
           text: "Cerrar sesión",
           style: "destructive",
-          onPress: () => console.log("Logout"),
+          onPress: () => {
+            // Te devuelve al login
+            router.replace("/(auth)/login");
+          },
         },
       ],
     );
@@ -51,17 +75,28 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header estilo minimalista */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Más</Text>
       </View>
 
-      {/* Perfil */}
       <View style={styles.profileSection}>
         <View style={styles.avatarPlaceholder}>
-          <Ionicons name="person" size={40} color="white" />
+          <Text style={{ color: "white", fontSize: 24, fontWeight: "bold" }}>
+            {userName.charAt(0).toUpperCase()}
+          </Text>
         </View>
-        <Text style={styles.profileName}>Usuario</Text>
+        <Text style={styles.profileName}>{userName}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Cuenta</Text>
+        {/* NAVEGA A LA PANTALLA DE PERFIL QUE CREAMOS */}
+        <SettingItem
+          icon="person-outline"
+          title="Editar Perfil"
+          onPress={() => router.push("/profile")}
+        />
+        <SettingItem icon="mail-outline" title="Cuenta" />
       </View>
 
       <View style={styles.section}>
@@ -74,12 +109,6 @@ export default function SettingsScreen() {
         />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Cuenta</Text>
-        <SettingItem icon="mail-outline" title="Cuenta" />
-        <SettingItem icon="help-circle-outline" title="Ayuda" />
-      </View>
-
       <TouchableOpacity style={styles.logoutContainer} onPress={handleLogout}>
         <Text style={styles.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
@@ -90,20 +119,9 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000", // Negro absoluto de fondo
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 15,
-    paddingBottom: 10,
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
+  container: { flex: 1, backgroundColor: "#000" },
+  header: { paddingTop: 60, paddingHorizontal: 15, paddingBottom: 10 },
+  headerTitle: { color: "#fff", fontSize: 22, fontWeight: "bold" },
   profileSection: {
     flexDirection: "row",
     alignItems: "center",
@@ -113,7 +131,7 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 60,
     height: 60,
-    backgroundColor: "#1db954", // Puedes cambiar por el color de tu avatar
+    backgroundColor: "#E50914",
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
@@ -123,10 +141,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginLeft: 15,
+    textTransform: "capitalize",
   },
-  section: {
-    marginTop: 20,
-  },
+  section: { marginTop: 20 },
   sectionTitle: {
     color: "#a3a3a3",
     fontSize: 13,
@@ -145,25 +162,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: "#222",
   },
-  itemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  itemText: {
-    fontSize: 16,
-    marginLeft: 15,
-    fontWeight: "400",
-  },
-  logoutContainer: {
-    marginTop: 40,
-    alignItems: "center",
-    paddingVertical: 15,
-  },
-  logoutText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
-  },
+  itemLeft: { flexDirection: "row", alignItems: "center" },
+  itemText: { fontSize: 16, marginLeft: 15, fontWeight: "400" },
+  logoutContainer: { marginTop: 40, alignItems: "center", paddingVertical: 15 },
+  logoutText: { color: "#fff", fontSize: 16, fontWeight: "500" },
   versionText: {
     textAlign: "center",
     color: "#555",

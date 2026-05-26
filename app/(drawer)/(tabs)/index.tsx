@@ -1,8 +1,10 @@
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { Image, ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   ScrollView,
   StatusBar,
@@ -11,43 +13,88 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-//Datos de prueba temporal
-const MOVIES = [
-  {
-    id: "1",
-    uri: "https://www.themoviedb.org/t/p/w1280/o4SM2hP63vMaPuAox6UuwVybHo4.jpg",
-  },
-  {
-    id: "2",
-    uri: "https://www.themoviedb.org/t/p/w1280/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
-  },
-  {
-    id: "3",
-    uri: "https://www.themoviedb.org/t/p/w1280/in1R2dDc421JxsoRWaIIAqVI2KE.jpg",
-  },
-  {
-    id: "4",
-    uri: "https://www.themoviedb.org/t/p/w1280/eJGWx219ZcEMVQJhAgMiqo8tYY.jpg",
-  },
-  {
-    id: "5",
-    uri: "https://image.tmdb.org/t/p/w500/A4j8S6moJS2zNtRR8oWF08gRnL5.jpg",
-  },
-];
-export default function homeScreen() {
-  //Componentes que se renderizaran cada poster individualmente
+export default function HomeScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const [movies, setMovies] = useState<any[]>([]);
+  const [trending, setTrending] = useState<any[]>([]);
+  const [action, setAction] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchMovies();
+  }, []);
+
+  const fetchMovies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(
+        "https://api.themoviedb.org/3/movie/popular?api_key=92b418e837b833be308bbfb1fb2aca1e&language=es-ES",
+      );
+
+      if (!response.ok) throw new Error("Error al obtener los datos");
+
+      const data = await response.json();
+
+      if (data.results) {
+        setMovies(data.results);
+        setTrending(data.results.slice(0, 10));
+        setAction(data.results.slice(10, 20));
+      }
+    } catch {
+      setError("No se pudieron cargar las películas. Verifica tu conexión.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderMovieItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.movieCard}>
+    <TouchableOpacity
+      style={styles.movieCard}
+      // AQUI ENVIAMOS EL TYPE=MOVIE
+      onPress={() => router.push(`/details/${item.id}?type=movie` as any)}
+    >
       <Image
-        source={{ uri: item.uri }}
+        source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
         style={styles.movieImage}
         contentFit="cover"
         transition={300}
       />
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerScreen]}>
+        <ActivityIndicator size="large" color="#E50914" />
+        <Text style={{ color: "white", marginTop: 10 }}>
+          Cargando Zentia...
+        </Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerScreen]}>
+        <Text style={{ color: "white", marginBottom: 15 }}>{error}</Text>
+        <TouchableOpacity style={styles.playButton} onPress={fetchMovies}>
+          <Text style={styles.playText}>Reintentar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const heroMovie = movies.length > 0 ? movies[0] : null;
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -56,14 +103,18 @@ export default function homeScreen() {
         translucent
       />
 
-      {/*BARRA SUPERIOR FLOTANTE*/}
-      <SafeAreaView style={styles.topNav}>
+      <SafeAreaView
+        style={[styles.topNav, { top: insets.top > 0 ? insets.top : 40 }]}
+      >
         <Text style={styles.logoText}>ZENTIA</Text>
         <View style={styles.topNavIcons}>
-          <TouchableOpacity style={{ marginRight: 20 }}>
+          <TouchableOpacity
+            style={{ marginRight: 20 }}
+            onPress={() => router.push("/catalog")}
+          >
             <Feather name="search" size={24} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/settings")}>
             <Image
               source={{
                 uri: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png",
@@ -75,10 +126,11 @@ export default function homeScreen() {
       </SafeAreaView>
 
       <ScrollView bounces={false}>
-        {/*Parte 1. El hero banner principal */}
         <ImageBackground
           source={{
-            uri: "https://www.themoviedb.org/t/p/w1280/aabwWZWx6z1aYP4PX2ADvbDKktd.jpg",
+            uri: heroMovie
+              ? `https://image.tmdb.org/t/p/w1280${heroMovie.backdrop_path}`
+              : "https://www.themoviedb.org/t/p/w1280/aabwWZWx6z1aYP4PX2ADvbDKktd.jpg",
           }}
           style={styles.heroBanner}
         >
@@ -87,46 +139,52 @@ export default function homeScreen() {
             style={styles.gradient}
           />
 
-          {/*Botones del banner - import de ICONS */}
           <View style={styles.heroButtons}>
-            <TouchableOpacity style={styles.playButton}>
+            <TouchableOpacity
+              style={styles.playButton}
+              onPress={() => router.push(`/player/${heroMovie?.id}` as any)}
+            >
               <Ionicons name="play" size={20} color="black" />
               <Text style={styles.playText}>Reproducir</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.listButton}>
+            <TouchableOpacity
+              style={styles.listButton}
+              onPress={() => router.push("/favorites")}
+            >
               <AntDesign name="plus" size={20} color="white" />
               <Text style={styles.listText}>Mi lista</Text>
             </TouchableOpacity>
           </View>
         </ImageBackground>
-        {/*Parte 2 -> Carrusel de categorias */}
+
         <View style={styles.content}>
-          <Text style={styles.sectionTitle}>Peliculas en tendencia</Text>
+          <Text style={styles.sectionTitle}>Películas en tendencia</Text>
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={MOVIES}
-            keyExtractor={(item) => item.id}
+            data={trending}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={renderMovieItem}
             contentContainerStyle={styles.flatListPadding}
           />
 
-          <Text style={styles.sectionTitle}>Agregados recientement</Text>
+          <Text style={styles.sectionTitle}>Agregados recientemente</Text>
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={[...MOVIES].reverse()}
-            keyExtractor={(item) => item.id}
+            data={[...movies].reverse()}
+            keyExtractor={(item) => item.id.toString() + "-recent"}
             renderItem={renderMovieItem}
             contentContainerStyle={styles.flatListPadding}
           />
+
           <Text style={styles.sectionTitle}>Acción y Aventura</Text>
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={MOVIES}
-            keyExtractor={(item) => item.id + "copy"}
+            data={action}
+            keyExtractor={(item) => item.id.toString() + "-action"}
             renderItem={renderMovieItem}
             contentContainerStyle={styles.flatListPadding}
           />
@@ -135,23 +193,25 @@ export default function homeScreen() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000000",
   },
-
-  //Los estilos de la barra superior
+  centerScreen: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   topNav: {
     position: "absolute",
-    top: 40, //Libre de ajustar es si el notch/camara interfiere
     left: 0,
     right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    zIndex: 10, //Esto es para mantener la barra por encima del banner
+    zIndex: 10,
   },
   logoText: {
     color: "#E50914",
@@ -168,7 +228,6 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 4,
   },
-  // ESTILOS DEL BANNER
   heroBanner: {
     width: "100%",
     height: 550,
@@ -181,7 +240,7 @@ const styles = StyleSheet.create({
   heroButtons: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 15, // Espaciado entre botones
+    gap: 15,
     marginBottom: 40,
     zIndex: 2,
   },
@@ -192,7 +251,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     flexDirection: "row",
     alignItems: "center",
-    gap: 5, // Espaciado entre el icono y el texto
+    gap: 5,
   },
   playText: {
     color: "#000000",
@@ -208,7 +267,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.2)",
     flexDirection: "row",
     alignItems: "center",
-    gap: 5, // Espaciado entre el icono y el texto
+    gap: 5,
   },
   listText: {
     color: "#FFFFFF",

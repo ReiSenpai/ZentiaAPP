@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Href, router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -27,7 +28,7 @@ export default function LoginScreen() {
     return regex.test(email);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setEmailError("");
     setPasswordError("");
     let isValid = true;
@@ -43,26 +44,36 @@ export default function LoginScreen() {
     if (password.trim() === "") {
       setPasswordError("La contraseña es obligatoria.");
       isValid = false;
-    } else if (password.length < 6) {
-      //->Pedir que ponga 6 caracteres.
-      setPasswordError("La contraseña debe tener al menos 6 caracteres.");
-      isValid = false;
     }
 
-    // SI LA VALIDACIÓN ES CORRECTA, INICIA LA ANIMACIÓN
     if (isValid) {
-      setIsLoading(true); // 1. Mostramos el círculo de carga
+      setIsLoading(true);
+      try {
+        // RECUPERAMOS LOS DATOS DE ASYNCSTORAGE
+        const userDataStr = await AsyncStorage.getItem("@user_data");
 
-      // Simulamos que estamos comprobando en una base de datos
-      setTimeout(() => {
-        setIsLoading(false); // Apagamos el círculo
-        setIsSuccess(true); // Mostramos el mensaje de éxito verde
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
 
-        // Espera 800 milisegundos para motrar al usuario "Bienvenido" e ingerse al inicio
-        setTimeout(() => {
-          router.replace("/");
-        }, 800);
-      }, 1500);
+          // VERIFICAMOS CREDENCIALES
+          if (userData.email === email && userData.password === password) {
+            setIsLoading(false);
+            setIsSuccess(true);
+            setTimeout(() => {
+              router.replace("/");
+            }, 800);
+          } else {
+            setIsLoading(false);
+            setPasswordError("Correo o contraseña incorrectos.");
+          }
+        } else {
+          setIsLoading(false);
+          setEmailError("No existe una cuenta con este correo.");
+        }
+      } catch (error) {
+        setIsLoading(false);
+        setPasswordError("Ocurrió un error al iniciar sesión.");
+      }
     }
   };
 
@@ -117,7 +128,7 @@ export default function LoginScreen() {
           {isLoading ? (
             <ActivityIndicator color="#FFFFFF" /> // El circulito de carga
           ) : isSuccess ? (
-            <Text style={styles.buttonText}>✅ ¡Bienvenido!</Text> // Texto de éxito
+            <Text style={styles.buttonText}>¡Bienvenido!</Text> // Texto de éxito
           ) : (
             <Text style={styles.buttonText}>Iniciar Sesión</Text> // Texto normal
           )}
