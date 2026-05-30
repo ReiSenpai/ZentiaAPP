@@ -155,3 +155,7 @@ Proyecto desarrollado como parte del curso de Desarrollo de Aplicaciones Móvile
   ![Pantalla de Login](./assets/images/catalog.png)
 - **Pantalla de Configuracion:**
   ![Pantalla de Login](./assets/images/setting.png)
+- **Pantalla de profile:**
+  ![Pantalla de Login](./assets/images/profile.png)
+  - **Pantalla de favorites:**
+    ![Pantalla de Login](./assets/images/favoritos.png)
