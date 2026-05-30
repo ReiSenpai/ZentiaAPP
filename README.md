@@ -146,16 +146,16 @@ Proyecto desarrollado como parte del curso de Desarrollo de Aplicaciones Móvile
 ## Capturas:
 
 - **Pantalla de Login:**
-  ![Pantalla de Login](./assets/images/login.png)
+  ![Pantalla de Login](./frontend/assets/images/login.png)
 - **Pantalla de Register:**
-  ![Pantalla de Login](./assets/images/register.png)
+  ![Pantalla de Login](./frontend/assets/images/register.png)
 - **Pantalla de Inicio:**
-  ![Pantalla de Login](./assets/images/home.png)
+  ![Pantalla de Login](./frontend/assets/images/home.png)
 - **Pantalla de Catalogo:**
-  ![Pantalla de Login](./assets/images/catalog.png)
+  ![Pantalla de Login](./frontend/assets/images/catalog.png)
 - **Pantalla de Configuracion:**
-  ![Pantalla de Login](./assets/images/setting.png)
+  ![Pantalla de Login](./frontend/assets/images/setting.png)
 - **Pantalla de profile:**
-  ![Pantalla de Login](./assets/images/profile.png)
+  ![Pantalla de Login](./frontend/assets/images/profile.png)
   - **Pantalla de favorites:**
-    ![Pantalla de Login](./assets/images/favoritos.png)
+    ![Pantalla de Login](./frontend/assets/images/favoritos.png)
