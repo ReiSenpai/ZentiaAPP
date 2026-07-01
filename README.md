@@ -23,12 +23,11 @@ El proyecto ha sido configurado siguiendo buenas prácticas de desarrollo móvil
 ## 📂 Estructura del Proyecto
 
 ```text
-app/
-├── (auth)/             # Flujo de autenticación (Login, Registro)
-├── (drawer)/           # Navegación lateral principal
-│   └── (tabs)/         # Navegación por pestañas (Catálogo, Home, Ajustes)
-├── components/         # Componentes reutilizables
-└── constants/          # Configuración global y estilos
+appZentia/
+├── backend/           #sistema interno backend
+├── frontend/           # sistema frontend
+│   └── app/         # contenido de la app
+├── README.md               # Configuración global y estilos
 ```
 
 ---

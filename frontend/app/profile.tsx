@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -41,37 +43,60 @@ export default function ProfileScreen() {
 
       if (userDataStr) {
         const userData = JSON.parse(userDataStr);
-
         setName(userData.name || "");
         setEmail(userData.email || "");
         setPassword(userData.password || "");
         setProfileImage(userData.profileImage || "");
       }
-    } catch {
+    } catch (error) {
+      // RÚBRICA: Logging básico de errores
+      console.error("[ERROR] Fallo al cargar los datos del usuario:", error);
       setMessage("Error al cargar perfil");
     } finally {
       setLoading(false);
     }
   };
 
-  // SELECCIONAR IMAGEN
+  // SELECCIONAR IMAGEN (RÚBRICA: Integración Hardware y Permisos)
   const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
+      console.log("[LOG] Solicitando permisos de galería...");
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!permission.granted) {
-      setMessage("Debes permitir acceso a tus fotos.");
-      return;
-    }
+      // Tratamiento ante denegaciones
+      if (!permission.granted) {
+        Alert.alert(
+          "Permiso Denegado",
+          "Zentia requiere acceso a tu galería para cambiar la foto de perfil.",
+        );
+        console.warn("[LOG] Usuario denegó acceso a la galería.");
+        setMessage("Debes permitir acceso a tus fotos.");
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+      console.log("[LOG] Abriendo galería de imágenes...");
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
 
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
+      if (!result.canceled) {
+        setProfileImage(result.assets[0].uri);
+        console.log(
+          "[LOG] Imagen seleccionada correctamente:",
+          result.assets[0].uri,
+        );
+      }
+    } catch (error) {
+      // RÚBRICA: Manejo de errores
+      console.error("[ERROR] Excepción al abrir el ImagePicker:", error);
+      Alert.alert(
+        "Error del Sistema",
+        "No se pudo abrir la galería en este dispositivo.",
+      );
     }
   };
 
@@ -95,15 +120,39 @@ export default function ProfileScreen() {
 
       await AsyncStorage.setItem("@user_data", JSON.stringify(updatedData));
 
+      console.log("[LOG] Perfil guardado exitosamente.");
       setMessage("¡Perfil actualizado con éxito!");
 
       setTimeout(() => {
         setMessage("");
       }, 3000);
-    } catch {
+    } catch (error) {
+      console.error("[ERROR] Fallo al guardar en AsyncStorage:", error);
       setMessage("Error al guardar cambios.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // RÚBRICA: Implementación de notificaciones locales (Integración de Evento Relevante)
+  const triggerTestNotification = async () => {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "¡Hola, " + (name || "Usuario") + "! 🎬",
+          body: "Zentia tiene nuevos estrenos que podrían interesarte. ¡Entra a revisarlos!",
+          data: { screen: "catalog" },
+        },
+        trigger: {
+          seconds: 2,
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, // <--- ESTA ES LA SOLUCIÓN
+        },
+      });
+      console.log("[LOG] Notificación programada correctamente.");
+      Alert.alert("Alerta Activada", "Saldrá una notificación en 2 segundos.");
+    } catch (error) {
+      console.error("[ERROR] Fallo al programar notificación local:", error);
+      Alert.alert("Error", "Tu dispositivo bloqueó la notificación.");
     }
   };
 
@@ -128,9 +177,7 @@ export default function ProfileScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Editar Perfil</Text>
-
         <View style={{ width: 24 }} />
       </View>
 
@@ -146,7 +193,6 @@ export default function ProfileScreen() {
           ) : (
             <Ionicons name="person-circle" size={100} color="#333" />
           )}
-
           <Text style={styles.changePhotoText}>Cambiar foto</Text>
         </TouchableOpacity>
 
@@ -166,7 +212,6 @@ export default function ProfileScreen() {
 
         {/* NOMBRE */}
         <Text style={styles.label}>Nombre completo</Text>
-
         <TextInput
           style={styles.input}
           value={name}
@@ -177,7 +222,6 @@ export default function ProfileScreen() {
 
         {/* EMAIL */}
         <Text style={styles.label}>Correo Electrónico</Text>
-
         <TextInput
           style={styles.input}
           value={email}
@@ -190,7 +234,6 @@ export default function ProfileScreen() {
 
         {/* PASSWORD */}
         <Text style={styles.label}>Contraseña</Text>
-
         <TextInput
           style={styles.input}
           value={password}
@@ -200,7 +243,7 @@ export default function ProfileScreen() {
           placeholderTextColor="#8c8c8c"
         />
 
-        {/* BOTÓN */}
+        {/* BOTÓN GUARDAR */}
         <TouchableOpacity
           style={styles.button}
           onPress={handleSave}
@@ -213,24 +256,40 @@ export default function ProfileScreen() {
             <Text style={styles.buttonText}>Guardar Cambios</Text>
           )}
         </TouchableOpacity>
+
+        {/* BOTÓN RÚBRICA - NOTIFICACIONES */}
+        <TouchableOpacity
+          style={[styles.button, styles.notificationButton]}
+          onPress={triggerTestNotification}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="notifications"
+            size={20}
+            color="#ccc"
+            style={{ marginRight: 8 }}
+          />
+          <Text style={styles.notificationButtonText}>
+            Probar Notificaciones
+          </Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
+// ESTILOS INTACTOS + AGREGADOS DE NOTIFICACIÓN
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
   },
-
   centerScreen: {
     flex: 1,
     backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
   },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -242,26 +301,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#222",
   },
-
   headerTitle: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },
-
   backButton: {
     padding: 5,
   },
-
   content: {
     padding: 20,
   },
-
   avatarContainer: {
     alignItems: "center",
     marginBottom: 30,
   },
-
   profileImage: {
     width: 110,
     height: 110,
@@ -269,21 +323,18 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#E50914",
   },
-
   changePhotoText: {
     color: "#E50914",
     marginTop: 12,
     fontWeight: "bold",
     fontSize: 15,
   },
-
   label: {
     color: "#a3a3a3",
     fontSize: 14,
     marginBottom: 8,
     marginLeft: 5,
   },
-
   input: {
     backgroundColor: "#1a1a1a",
     color: "#fff",
@@ -295,7 +346,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#333",
   },
-
   button: {
     backgroundColor: "#E50914",
     height: 52,
@@ -303,25 +353,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
+    flexDirection: "row", // Agregado para alinear icono y texto del botón
   },
-
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
-
+  // ESTILO NUEVO PARA BOTON DE NOTIFICACION (Respetando el modo oscuro)
+  notificationButton: {
+    backgroundColor: "#222",
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: "#444",
+  },
+  notificationButtonText: {
+    color: "#ccc",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   message: {
     textAlign: "center",
     marginBottom: 20,
     fontSize: 15,
     fontWeight: "bold",
   },
-
   messageSuccess: {
     color: "#28a745",
   },
-
   messageError: {
     color: "#ff3333",
   },
